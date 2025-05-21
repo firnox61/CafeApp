@@ -12,9 +12,9 @@ namespace DataAccess.Concrete.EntityFramework
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        public DataContext()
+       /* public DataContext()
         {
-        }
+        }*/
 
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Ingredient> Ingredients => Set<Ingredient>();
@@ -26,10 +26,39 @@ namespace DataAccess.Concrete.EntityFramework
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Composite key
             modelBuilder.Entity<ProductIngredient>()
-                .HasKey(pi => new { pi.ProductId, pi.IngredientId });
+         .HasKey(pi => new { pi.ProductId, pi.IngredientId });
 
-            // Diğer özel eşleşmeler, fluent API konfigürasyonları buraya eklenir
+            modelBuilder.Entity<ProductIngredient>()
+                .HasOne(pi => pi.Product)
+                .WithMany(p => p.ProductIngredients)
+                .HasForeignKey(pi => pi.ProductId);
+
+            modelBuilder.Entity<ProductIngredient>()
+                .HasOne(pi => pi.Ingredient)
+                .WithMany(i => i.ProductIngredients)
+                .HasForeignKey(pi => pi.IngredientId);
+
+            // Decimal precision ayarları
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.UnitPrice)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.TotalAmount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderItems)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Diğer konfigürasyonlar
         }
+
     }
 }

@@ -11,5 +11,6 @@ namespace DataAccess.Concrete.EntityFramework
 {
     public class EfIngredientDal : EfEntityRepositoryBase<Ingredient, DataContext>, IIngredientDal
     {
+        public EfIngredientDal(DataContext context) : base(context) { }
     }
 }

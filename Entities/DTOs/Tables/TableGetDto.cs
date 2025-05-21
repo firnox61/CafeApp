@@ -1,0 +1,18 @@
+﻿using Entities.DTOs.Orders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Entities.DTOs.Tables
+{
+    public class TableGetDto
+    {
+
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public List<OrderSummaryDto> ActiveOrders { get; set; } = new(); // sadece unpaid orders
+
+    }
+}

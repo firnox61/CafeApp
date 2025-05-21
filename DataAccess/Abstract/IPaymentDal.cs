@@ -10,5 +10,6 @@ namespace DataAccess.Abstract
 {
     public interface IPaymentDal : IEntityRepository<Payment>
     {
+        Task<Payment?> GetByOrderIdAsync(int orderId);
     }
 }
