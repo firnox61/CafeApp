@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Core.Aspects.Autofac.Transaction;
 using Core.DataAccess;
 using Core.Utilities.Result;
 using DataAccess.Abstract;
@@ -32,7 +33,7 @@ namespace Business.Concrete
             _ingredientDal=ingredientDal;
             _productionHistoryDal=productionHistoryDal;
         }
-
+        [TransactionScopeAspect]
         public async Task<IResult> Add(ProductCreateDto productCreateDto)
         {
             // 1. Malzeme stoklarını kontrol et

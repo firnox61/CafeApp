@@ -1,5 +1,10 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Logging;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingCorcerns.Logging;
 using Core.Utilities.Result;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
@@ -23,7 +28,9 @@ namespace Business.Concrete
             _ingredientDal = ıngredientDal;
             _mapper = mapper;
         }
-
+        // [CacheRemoveAspect("ITableService.Get")]
+        [ValidationAspect(typeof(IngredientCreateDtoValidator))]
+        [LogAspect(typeof(FileLogger))] // opsiyonel: loglama da ekli
         public async Task<IResult> Add(IngredientCreateDto ingredientCreateDto)
         {
             var newIngredient= _mapper.Map<Ingredient>(ingredientCreateDto);
@@ -40,11 +47,12 @@ namespace Business.Concrete
             await _ingredientDal.DeleteAsync(ingredient);
             return new SuccessResult("Malzeme silindi.");
         }
-
+        [CacheAspect]
         public async Task<IDataResult<List<Ingredient>>> GetAllAsync()
         {
-            
+            Console.WriteLine("deneme yazısı komuta eklendi");
             return new SuccessDataResult<List<Ingredient>>(await _ingredientDal.GetAllAsync());
+           
         }
 
         public async Task<IDataResult<Ingredient?>> GetById(int id)

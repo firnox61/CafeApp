@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Logging;
+using Core.CrossCuttingCorcerns.Logging;
 using Core.Utilities.Result;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -14,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace Business.Concrete
 {
+    [LogAspect(typeof(FileLogger))]
     public class TableManager : ITableService
     {
         private readonly ITableDal _tableDal;
@@ -25,6 +29,7 @@ namespace Business.Concrete
             _mapper = mapper;
         }
 
+      
         public async Task<IResult> Add(TableCreateDto tableCreateDto)
         {
             var newTable = _mapper.Map<Table>(tableCreateDto);
@@ -37,7 +42,7 @@ namespace Business.Concrete
            await _tableDal.DeleteAsync(table);
             return new SuccessResult();
         }
-
+        [CacheAspect]
         public async Task<IDataResult<List<TableGetDto>>> GetAllAsync()
         {
             var tables = await _tableDal.GetAllWithOrdersAsync();
