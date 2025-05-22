@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
@@ -19,7 +21,8 @@ namespace DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Stock = table.Column<double>(type: "float", nullable: false)
+                    Stock = table.Column<double>(type: "float", nullable: false),
+                    MinStockThreshold = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,7 +38,9 @@ namespace DataAccess.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Stock = table.Column<int>(type: "int", nullable: false)
+                    Stock = table.Column<int>(type: "int", nullable: false),
+                    MinStockThreshold = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,6 +83,27 @@ namespace DataAccess.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductionHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    QuantityProduced = table.Column<int>(type: "int", nullable: false),
+                    ProducedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductionHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductionHistories_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,6 +177,48 @@ namespace DataAccess.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Ingredients",
+                columns: new[] { "Id", "MinStockThreshold", "Name", "Stock", "Unit" },
+                values: new object[,]
+                {
+                    { 1, 10.0, "Un", 100.0, "Kg" },
+                    { 2, 10.0, "Şeker", 80.0, "Kg" },
+                    { 3, 5.0, "Tuz", 60.0, "Kg" },
+                    { 4, 5.0, "Yağ", 50.0, "Litre" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Products",
+                columns: new[] { "Id", "CreatedAt", "Description", "MinStockThreshold", "Name", "Price", "Stock" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189), "Tatlı unlu mamül", 5, "Kurabiye", 25m, 30 },
+                    { 2, new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189), "Tuzlu hamur işi", 5, "Poğaça", 20m, 40 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Tables",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Masa 1" },
+                    { 2, "Masa 2" },
+                    { 3, "Masa 3" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ProductIngredients",
+                columns: new[] { "IngredientId", "ProductId", "QuantityRequired" },
+                values: new object[,]
+                {
+                    { 1, 1, 2.0 },
+                    { 2, 1, 1.0 },
+                    { 1, 2, 2.0 },
+                    { 3, 2, 1.0 },
+                    { 4, 2, 1.0 }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
@@ -176,6 +244,11 @@ namespace DataAccess.Migrations
                 name: "IX_ProductIngredients_IngredientId",
                 table: "ProductIngredients",
                 column: "IngredientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductionHistories_ProductId",
+                table: "ProductionHistories",
+                column: "ProductId");
         }
 
         /// <inheritdoc />
@@ -189,6 +262,9 @@ namespace DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductIngredients");
+
+            migrationBuilder.DropTable(
+                name: "ProductionHistories");
 
             migrationBuilder.DropTable(
                 name: "Orders");

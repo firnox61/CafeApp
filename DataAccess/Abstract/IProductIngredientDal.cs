@@ -14,5 +14,6 @@ namespace DataAccess.Abstract
         // Task<List<ProductIngredient>> GetAllWithIncludesAsync();
         Task<List<ProductIngredientGetDto>> GetAllWithDetailsAsync();
         Task<ProductIngredientGetDto?> GetByIdWithDetailsAsync(int ingredientId);
+        Task<List<ProductIngredient>> GetAllWithProductAndIngredientAsync();
     }
 }

@@ -74,6 +74,22 @@ namespace WebAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("getmostproducedproduct")]
+        public async Task<IActionResult> GetMostProducedProducts()
+        {
+            var result = await _productService.GetMostProducedProductsAsync();
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+        [HttpGet("production-history")]
+        public async Task<IActionResult> GetProductionHistory()
+        {
+            var result = await _productService.GetProductionHistoryReportAsync();
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
 
 
 

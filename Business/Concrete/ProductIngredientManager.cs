@@ -4,6 +4,7 @@ using Core.Utilities.Result;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs.Products;
+using Entities.DTOs.Users;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -51,5 +52,48 @@ namespace Business.Concrete
 
             return new SuccessDataResult<ProductIngredientGetDto>(result);
         }
+        public async Task<IDataResult<List<IngredientUsageReportDto>>> GetMostUsedIngredientsAsync()
+        {
+            var productIngredients = await _productIngredientDal.GetAllWithProductAndIngredientAsync();
+
+            var result = productIngredients
+                .GroupBy(pi => pi.Ingredient.Name)
+                .Select(g => new IngredientUsageReportDto
+                {
+                    IngredientName = g.Key,
+                    TotalUsedAmount = g.Sum(pi => pi.QuantityRequired * pi.Product.Stock)
+                })
+                .OrderByDescending(x => x.TotalUsedAmount)
+                .ToList();
+
+            return new SuccessDataResult<List<IngredientUsageReportDto>>(result);
+        }
+        public async Task<IDataResult<List<IngredientUsageReportDto>>> GetMostUsedIngredientsAsync(UsageReportFilterDto filter)
+        {
+            var productIngredients = await _productIngredientDal.GetAllWithProductAndIngredientAsync();
+
+            if (filter.StartDate.HasValue)
+                productIngredients = productIngredients
+                    .Where(pi => pi.Product.CreatedAt >= filter.StartDate.Value)
+                    .ToList();
+
+            if (filter.EndDate.HasValue)
+                productIngredients = productIngredients
+                    .Where(pi => pi.Product.CreatedAt <= filter.EndDate.Value)
+                    .ToList();
+
+            var result = productIngredients
+                .GroupBy(pi => pi.Ingredient.Name)
+                .Select(g => new IngredientUsageReportDto
+                {
+                    IngredientName = g.Key,
+                    TotalUsedAmount = g.Sum(pi => pi.QuantityRequired * pi.Product.Stock)
+                })
+                .OrderByDescending(x => x.TotalUsedAmount)
+                .ToList();
+
+            return new SuccessDataResult<List<IngredientUsageReportDto>>(result);
+        }
+
     }
 }

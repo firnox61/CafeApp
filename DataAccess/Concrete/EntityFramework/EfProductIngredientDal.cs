@@ -48,5 +48,13 @@ namespace DataAccess.Concrete.EntityFramework
                 })
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<ProductIngredient>> GetAllWithProductAndIngredientAsync()
+        {
+            return await _context.ProductIngredients
+                .Include(pi => pi.Product)
+                .Include(pi => pi.Ingredient)
+                .ToListAsync();
+        }
     }
 }

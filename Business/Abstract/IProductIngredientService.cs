@@ -2,6 +2,7 @@
 using Entities.Concrete;
 using Entities.DTOs.Ingredients;
 using Entities.DTOs.Products;
+using Entities.DTOs.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,8 @@ namespace Business.Abstract
         Task<IResult> Add(ProductIngredientCreateDto productIngredientCreateDto);
        // Task<IResult> Update(IngredientUpdateDto ingredientUpdateDto);
         Task<IResult> Delete(ProductIngredient productIngredient);
+        Task<IDataResult<List<IngredientUsageReportDto>>> GetMostUsedIngredientsAsync();
+        Task<IDataResult<List<IngredientUsageReportDto>>> GetMostUsedIngredientsAsync(UsageReportFilterDto filter);
+
     }
 }

@@ -2,6 +2,7 @@
 using Entities.Concrete;
 using Entities.DTOs.Ingredients;
 using Entities.DTOs.Products;
+using Entities.DTOs.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -70,6 +71,25 @@ namespace WebAPI.Controllers
             {
                 return Ok(result);
             }
+            return BadRequest(result);
+        }
+        [HttpGet("getmostusedIngredients")]
+        public async Task<IActionResult> GetMostUsedIngredients()
+        {
+            var result = await _productIngredientService.GetMostUsedIngredientsAsync();
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+        [HttpPost("getmostusedingredients-bydate")]
+        public async Task<IActionResult> GetMostUsedIngredientsByDate([FromBody] UsageReportFilterDto filter)
+        {
+            var result = await _productIngredientService.GetMostUsedIngredientsAsync(filter);
+            if (result.Success)
+                return Ok(result);
+
             return BadRequest(result);
         }
     }

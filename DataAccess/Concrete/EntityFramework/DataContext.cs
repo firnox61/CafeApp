@@ -1,5 +1,7 @@
-﻿using Entities.Concrete;
+﻿//using DataAccess.Migrations;
+using Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +24,8 @@ namespace DataAccess.Concrete.EntityFramework
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Table> Tables => Set<Table>();
-        public DbSet<Payment> Payments => Set<Payment>();
-
+        public DbSet<Payment> Payments => Set<Payment>(); 
+         public DbSet<ProductionHistory> ProductionHistories => Set<ProductionHistory>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Composite key
@@ -57,8 +59,44 @@ namespace DataAccess.Concrete.EntityFramework
                 .WithOne(oi => oi.Order)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ProductionHistory>()
+                 .HasOne(ph => ph.Product)
+                 .WithMany(p => p.ProductionHistories)
+                 .HasForeignKey(ph => ph.ProductId)
+                 .OnDelete(DeleteBehavior.Restrict); // ✅ ürün silinemez, çünkü geçmiş korunmalı
             // Diğer konfigürasyonlar
+
+            var now = DateTime.UtcNow;
+
+            modelBuilder.Entity<Ingredient>().HasData(
+                new Ingredient { Id = 1, Name = "Un", Unit = "Kg", Stock = 100, MinStockThreshold = 10 },
+                new Ingredient { Id = 2, Name = "Şeker", Unit = "Kg", Stock = 80, MinStockThreshold = 10 },
+                new Ingredient { Id = 3, Name = "Tuz", Unit = "Kg", Stock = 60, MinStockThreshold = 5 },
+                new Ingredient { Id = 4, Name = "Yağ", Unit = "Litre", Stock = 50, MinStockThreshold = 5 }
+            );
+
+            modelBuilder.Entity<Table>().HasData(
+                new Table { Id = 1, Name = "Masa 1" },
+                new Table { Id = 2, Name = "Masa 2" },
+                new Table { Id = 3, Name = "Masa 3" }
+            );
+
+            modelBuilder.Entity<Product>().HasData(
+                new Product { Id = 1, Name = "Kurabiye", Description = "Tatlı unlu mamül", Price = 25, Stock = 30, MinStockThreshold = 5, CreatedAt = now },
+                new Product { Id = 2, Name = "Poğaça", Description = "Tuzlu hamur işi", Price = 20, Stock = 40, MinStockThreshold = 5, CreatedAt = now }
+            );
+
+            modelBuilder.Entity<ProductIngredient>().HasData(
+                new ProductIngredient { ProductId = 1, IngredientId = 1, QuantityRequired = 2 },
+                new ProductIngredient { ProductId = 1, IngredientId = 2, QuantityRequired = 1 },
+                new ProductIngredient { ProductId = 2, IngredientId = 1, QuantityRequired = 2 },
+                new ProductIngredient { ProductId = 2, IngredientId = 3, QuantityRequired = 1 },
+                new ProductIngredient { ProductId = 2, IngredientId = 4, QuantityRequired = 1 }
+            );
         }
 
     }
 }
+//Add-Migration InitialCreate
+
+//update-database "InitialCreate"

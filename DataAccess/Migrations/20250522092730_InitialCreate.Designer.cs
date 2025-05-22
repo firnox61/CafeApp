@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250521104400_InitialCreate")]
+    [Migration("20250522092730_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,6 +33,9 @@ namespace DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("MinStockThreshold")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -47,6 +50,40 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Ingredients");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            MinStockThreshold = 10.0,
+                            Name = "Un",
+                            Stock = 100.0,
+                            Unit = "Kg"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            MinStockThreshold = 10.0,
+                            Name = "Şeker",
+                            Stock = 80.0,
+                            Unit = "Kg"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            MinStockThreshold = 5.0,
+                            Name = "Tuz",
+                            Stock = 60.0,
+                            Unit = "Kg"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            MinStockThreshold = 5.0,
+                            Name = "Yağ",
+                            Stock = 50.0,
+                            Unit = "Litre"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Concrete.Order", b =>
@@ -139,8 +176,14 @@ namespace DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MinStockThreshold")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -155,6 +198,28 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189),
+                            Description = "Tatlı unlu mamül",
+                            MinStockThreshold = 5,
+                            Name = "Kurabiye",
+                            Price = 25m,
+                            Stock = 30
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189),
+                            Description = "Tuzlu hamur işi",
+                            MinStockThreshold = 5,
+                            Name = "Poğaça",
+                            Price = 20m,
+                            Stock = 40
+                        });
                 });
 
             modelBuilder.Entity("Entities.Concrete.ProductIngredient", b =>
@@ -173,6 +238,62 @@ namespace DataAccess.Migrations
                     b.HasIndex("IngredientId");
 
                     b.ToTable("ProductIngredients");
+
+                    b.HasData(
+                        new
+                        {
+                            ProductId = 1,
+                            IngredientId = 1,
+                            QuantityRequired = 2.0
+                        },
+                        new
+                        {
+                            ProductId = 1,
+                            IngredientId = 2,
+                            QuantityRequired = 1.0
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            IngredientId = 1,
+                            QuantityRequired = 2.0
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            IngredientId = 3,
+                            QuantityRequired = 1.0
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            IngredientId = 4,
+                            QuantityRequired = 1.0
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Concrete.ProductionHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ProducedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityProduced")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductionHistories");
                 });
 
             modelBuilder.Entity("Entities.Concrete.Table", b =>
@@ -190,6 +311,23 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tables");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Masa 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Masa 2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Masa 3"
+                        });
                 });
 
             modelBuilder.Entity("Entities.Concrete.Order", b =>
@@ -252,6 +390,17 @@ namespace DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Entities.Concrete.ProductionHistory", b =>
+                {
+                    b.HasOne("Entities.Concrete.Product", "Product")
+                        .WithMany("ProductionHistories")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Entities.Concrete.Ingredient", b =>
                 {
                     b.Navigation("ProductIngredients");
@@ -267,6 +416,8 @@ namespace DataAccess.Migrations
             modelBuilder.Entity("Entities.Concrete.Product", b =>
                 {
                     b.Navigation("ProductIngredients");
+
+                    b.Navigation("ProductionHistories");
                 });
 
             modelBuilder.Entity("Entities.Concrete.Table", b =>

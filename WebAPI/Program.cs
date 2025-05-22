@@ -40,6 +40,8 @@ builder.Services.AddScoped<IOrderItemDal, EfOrderItemDal>();
 builder.Services.AddScoped<IProductIngredientService, ProductIngredientManager>();
 builder.Services.AddScoped<IProductIngredientDal, EfProductIngredientDal>();
 
+builder.Services.AddScoped<IProductionHistoryDal, EfProductionHistoryDal>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

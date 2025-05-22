@@ -47,7 +47,21 @@ namespace Business.Concrete
             {
                 var product = await _productDal.GetAsync(p => p.Id == item.ProductId);
                 if (product == null) continue;
+                // 🔍 Yeterli stok kontrolü (opsiyonel ama önerilir)
+                if (product.Stock < item.Quantity)
+                    return new ErrorResult($"Yetersiz ürün stoğu: {product.Name} (Mevcut: {product.Stock}, İstenen: {item.Quantity})");
 
+                // 🔻 Stok düş
+                product.Stock -= item.Quantity;
+                await _productDal.UpdateAsync(product);
+
+                // ⚠️ Kritik stok kontrolü
+                if (product.Stock <= product.MinStockThreshold)
+                {
+                    Console.WriteLine($"⚠️ Ürün stoğu kritik seviyeye düştü: {product.Name} (Mevcut: {product.Stock})");
+                }
+
+                // Sipariş satırını ekle
                 var orderItem = new OrderItem
                 {
                     ProductId = product.Id,

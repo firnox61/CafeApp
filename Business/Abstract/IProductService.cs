@@ -16,5 +16,7 @@ namespace Business.Abstract
         Task<IResult> Add(ProductCreateDto productCreateDto);
         Task<IResult> Update(Product product);
         Task<IResult> Delete(int productId);
+        Task<IDataResult<List<ProductProductionReportDto>>> GetMostProducedProductsAsync();
+        Task<IDataResult<List<ProductProductionHistoryDto>>> GetProductionHistoryReportAsync();
     }
 }

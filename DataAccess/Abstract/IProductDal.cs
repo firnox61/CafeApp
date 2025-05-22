@@ -14,5 +14,6 @@ namespace DataAccess.Abstract
     {
         //Task AddAsync(ProductCreateDto productCreateDto);
         Task<List<ProductGetDto>> GetProductDetailsAsync();
+       
     }
 }

@@ -13,7 +13,7 @@ namespace Entities.Concrete
         public string Name { get; set; } = null!;
         public string Unit { get; set; } = null!; // örn: gram, ml, adet
         public double Stock { get; set; }
-
+        public double MinStockThreshold { get; set; } = 0; // ✅ Kritik eşik seviyesi
         public ICollection<ProductIngredient> ProductIngredients { get; set; } = new List<ProductIngredient>();
     }
 }
