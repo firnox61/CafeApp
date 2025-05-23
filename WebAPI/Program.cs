@@ -74,6 +74,7 @@ if (app.Environment.IsDevelopment())
 }
 app.ConfigureCustomExceptionMiddleware();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

@@ -40,7 +40,8 @@ namespace DataAccess.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
                     MinStockThreshold = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -189,15 +190,6 @@ namespace DataAccess.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Products",
-                columns: new[] { "Id", "CreatedAt", "Description", "MinStockThreshold", "Name", "Price", "Stock" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189), "Tatlı unlu mamül", 5, "Kurabiye", 25m, 30 },
-                    { 2, new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189), "Tuzlu hamur işi", 5, "Poğaça", 20m, 40 }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Tables",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
@@ -205,18 +197,6 @@ namespace DataAccess.Migrations
                     { 1, "Masa 1" },
                     { 2, "Masa 2" },
                     { 3, "Masa 3" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "ProductIngredients",
-                columns: new[] { "IngredientId", "ProductId", "QuantityRequired" },
-                values: new object[,]
-                {
-                    { 1, 1, 2.0 },
-                    { 2, 1, 1.0 },
-                    { 1, 2, 2.0 },
-                    { 3, 2, 1.0 },
-                    { 4, 2, 1.0 }
                 });
 
             migrationBuilder.CreateIndex(

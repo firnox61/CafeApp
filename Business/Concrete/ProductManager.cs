@@ -22,16 +22,19 @@ namespace Business.Concrete
         private readonly IProductIngredientDal _productIngredientDal;
         private readonly IIngredientDal _ingredientDal;
         private readonly IProductionHistoryDal _productionHistoryDal;
+        IFileService _fileService;
 
         private readonly IMapper _mapper;
 
-        public ProductManager(IProductDal productDal, IMapper mapper, IProductIngredientDal productIngredientDal, IIngredientDal ingredientDal, IProductionHistoryDal productionHistoryDal)
+        public ProductManager(IProductDal productDal, IMapper mapper, IProductIngredientDal productIngredientDal, IIngredientDal ingredientDal,
+            IProductionHistoryDal productionHistoryDal, IFileService fileService)
         {
             _productDal = productDal;
-            _mapper=mapper;
+            _mapper = mapper;
             _productIngredientDal = productIngredientDal;
-            _ingredientDal=ingredientDal;
-            _productionHistoryDal=productionHistoryDal;
+            _ingredientDal = ingredientDal;
+            _productionHistoryDal = productionHistoryDal;
+            _fileService = fileService; 
         }
         [TransactionScopeAspect]
         public async Task<IResult> Add(ProductCreateDto productCreateDto)
@@ -48,7 +51,7 @@ namespace Business.Concrete
                 if (ingredient.Stock < required)
                     return new ErrorResult($"Yetersiz stok: {ingredient.Name}. Gerekli: {required}, Mevcut: {ingredient.Stock}");
             }
-
+            var fileName = await _fileService.UploadImageAsync(productCreateDto.Image, "images/products");
             // 2. Ürün kaydı
             var product = new Product
             {
@@ -57,6 +60,7 @@ namespace Business.Concrete
                 Price = productCreateDto.Price,
                 Stock = productCreateDto.Stock,
                 CreatedAt= DateTime.UtcNow,
+                ImageFileName = fileName,
             };
 
             await _productDal.AddAsync(product);
@@ -120,10 +124,43 @@ namespace Business.Concrete
             return new SuccessDataResult<Product?>();
         }
 
-        public async Task<IResult> Update(Product product)
+        [TransactionScopeAspect]
+        public async Task<IResult> Update(ProductUpdateDto productUpdateDto)
         {
+            var product = await _productDal.GetAsync(p => p.Id == productUpdateDto.Id);
+            if (product == null)
+                return new ErrorResult("Ürün bulunamadı.");
+
+            // Görsel güncellemesi varsa
+            if (productUpdateDto.Image != null)
+            {
+                await _fileService.DeleteImageAsync("images/products", product.ImageFileName!);
+                var newImageName = await _fileService.UploadImageAsync(productUpdateDto.Image, "images/products");
+                product.ImageFileName = newImageName;
+            }
+
+            // Diğer alanları güncelle
+            product.Name = productUpdateDto.Name;
+            product.Description = productUpdateDto.Description;
+            product.Price = productUpdateDto.Price;
+
+            if (productUpdateDto.Stock != product.Stock)
+            {
+                var diff = productUpdateDto.Stock - product.Stock;
+                product.Stock = productUpdateDto.Stock;
+
+                // Stok değiştiyse üretim geçmişine kayıt
+                var history = new ProductionHistory
+                {
+                    ProductId = product.Id,
+                    QuantityProduced = diff,
+                    ProducedAt = DateTime.UtcNow
+                };
+                await _productionHistoryDal.AddAsync(history);
+            }
+
             await _productDal.UpdateAsync(product);
-            return new SuccessResult();
+            return new SuccessResult("Ürün başarıyla güncellendi.");
         }
         public async Task<IDataResult<List<ProductProductionReportDto>>> GetMostProducedProductsAsync()
         {

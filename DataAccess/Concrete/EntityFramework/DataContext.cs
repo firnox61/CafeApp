@@ -81,18 +81,18 @@ namespace DataAccess.Concrete.EntityFramework
                 new Table { Id = 3, Name = "Masa 3" }
             );
 
-            modelBuilder.Entity<Product>().HasData(
+            /*modelBuilder.Entity<Product>().HasData(
                 new Product { Id = 1, Name = "Kurabiye", Description = "Tatlı unlu mamül", Price = 25, Stock = 30, MinStockThreshold = 5, CreatedAt = now },
                 new Product { Id = 2, Name = "Poğaça", Description = "Tuzlu hamur işi", Price = 20, Stock = 40, MinStockThreshold = 5, CreatedAt = now }
-            );
+            );*/
 
-            modelBuilder.Entity<ProductIngredient>().HasData(
+            /*modelBuilder.Entity<ProductIngredient>().HasData(
                 new ProductIngredient { ProductId = 1, IngredientId = 1, QuantityRequired = 2 },
                 new ProductIngredient { ProductId = 1, IngredientId = 2, QuantityRequired = 1 },
                 new ProductIngredient { ProductId = 2, IngredientId = 1, QuantityRequired = 2 },
                 new ProductIngredient { ProductId = 2, IngredientId = 3, QuantityRequired = 1 },
                 new ProductIngredient { ProductId = 2, IngredientId = 4, QuantityRequired = 1 }
-            );
+            );*/
         }
 
     }

@@ -16,6 +16,7 @@ namespace Entities.Concrete
         public int Stock { get; set; }
         public int MinStockThreshold { get; set; } = 0; // ✅ Kritik stok eşiği
         public DateTime CreatedAt { get; set; }
+        public string? ImageFileName { get; set; }
         public ICollection<ProductIngredient> ProductIngredients { get; set; } = new List<ProductIngredient>();
         public ICollection<ProductionHistory> ProductionHistories { get; set; } = new List<ProductionHistory>();
 

@@ -21,6 +21,9 @@ namespace DataAccess.Mapping
         {
             CreateMap<Product, ProductCreateDto>().ReverseMap();
             CreateMap<ProductIngredient, ProductIngredientCreateDto>().ReverseMap();
+            CreateMap<Product, ProductGetDto>()
+    .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.ProductIngredients));
+
 
             CreateMap<Table, TableCreateDto>().ReverseMap();
             CreateMap<Table, TableUpdateDto>().ReverseMap();

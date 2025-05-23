@@ -28,6 +28,7 @@ namespace DataAccess.Concrete.EntityFramework
                     Description = p.Description,
                     Price = p.Price,
                     Stock = p.Stock,
+                    ImageFileName = p.ImageFileName,
                     Ingredients = p.ProductIngredients.Select(pi => new IngredientDto
                     {
                         IngredientId = pi.IngredientId,

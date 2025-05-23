@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250522092730_InitialCreate")]
+    [Migration("20250523080146_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -182,6 +182,9 @@ namespace DataAccess.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageFileName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MinStockThreshold")
                         .HasColumnType("int");
 
@@ -198,28 +201,6 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189),
-                            Description = "Tatlı unlu mamül",
-                            MinStockThreshold = 5,
-                            Name = "Kurabiye",
-                            Price = 25m,
-                            Stock = 30
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 5, 22, 9, 27, 29, 885, DateTimeKind.Utc).AddTicks(189),
-                            Description = "Tuzlu hamur işi",
-                            MinStockThreshold = 5,
-                            Name = "Poğaça",
-                            Price = 20m,
-                            Stock = 40
-                        });
                 });
 
             modelBuilder.Entity("Entities.Concrete.ProductIngredient", b =>
@@ -238,38 +219,6 @@ namespace DataAccess.Migrations
                     b.HasIndex("IngredientId");
 
                     b.ToTable("ProductIngredients");
-
-                    b.HasData(
-                        new
-                        {
-                            ProductId = 1,
-                            IngredientId = 1,
-                            QuantityRequired = 2.0
-                        },
-                        new
-                        {
-                            ProductId = 1,
-                            IngredientId = 2,
-                            QuantityRequired = 1.0
-                        },
-                        new
-                        {
-                            ProductId = 2,
-                            IngredientId = 1,
-                            QuantityRequired = 2.0
-                        },
-                        new
-                        {
-                            ProductId = 2,
-                            IngredientId = 3,
-                            QuantityRequired = 1.0
-                        },
-                        new
-                        {
-                            ProductId = 2,
-                            IngredientId = 4,
-                            QuantityRequired = 1.0
-                        });
                 });
 
             modelBuilder.Entity("Entities.Concrete.ProductionHistory", b =>

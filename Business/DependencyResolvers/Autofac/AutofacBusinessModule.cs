@@ -22,6 +22,7 @@ namespace Business.DependencyResolvers.Autofac
             // builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>();
             builder.RegisterType<ProductManager>().As<IProductService>().InstancePerLifetimeScope();
             builder.RegisterType<EfProductDal>().As<IProductDal>().InstancePerLifetimeScope();
+            builder.RegisterType<FileServiceManager>().As<IFileService>().InstancePerLifetimeScope();
 
             builder.RegisterType<PaymentManager>().As<IPaymentService>().InstancePerLifetimeScope();
             builder.RegisterType<EfPaymentDal>().As<IPaymentDal>().InstancePerLifetimeScope();

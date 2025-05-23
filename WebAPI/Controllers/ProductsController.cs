@@ -19,7 +19,8 @@ namespace WebAPI.Controllers
 
 
         [HttpPost("add")]
-        public async Task<IActionResult> Add(ProductCreateDto productCreateDto)
+        [Consumes("multipart/form-data")] // 🔥 Swagger ve ASP.NET'e sinyal ver
+        public async Task<IActionResult> Add([FromForm] ProductCreateDto productCreateDto)
         {
             var result= await _productService.Add(productCreateDto);
             if (result.Success)
@@ -30,10 +31,11 @@ namespace WebAPI.Controllers
         }
 
 
-        [HttpPost("update")]
-        public async Task<IActionResult> Update(Product product)
+        [HttpPut("update")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update([FromForm] ProductUpdateDto productUpdateDto)
         {
-            var result = await _productService.Update(product);
+            var result = await _productService.Update(productUpdateDto);
             if (result.Success)
             {
                 return Ok(result);
