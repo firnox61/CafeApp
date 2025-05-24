@@ -24,7 +24,7 @@ namespace WebAPI.Controllers
                 return BadRequest(result.Message);
 
             var tokenResult = await _authService.CreateAccessTokenAsync(result.Data);
-            return Ok(tokenResult.Data); // token objesi dön
+            return Ok(tokenResult.Data); // token objesi dönfbgf
         }
 
         [HttpPost("login")]
