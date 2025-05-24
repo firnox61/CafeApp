@@ -7,35 +7,37 @@ using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using Core.Utilities.Interceptors;
 using Core.CrossCuttingCorcerns.Logger;
+using Core.CrossCuttingCorcerns.Logging;
 
 
 namespace Core.Aspects.Autofac.Logging
 {
     public class LogAspect : MethodInterception
     {
-        private readonly ILogger _logger;
+        private readonly ILogger _loggerService;
 
-        public LogAspect(Type loggerType)
+        public LogAspect()
         {
-            if (!typeof(ILogger).IsAssignableFrom(loggerType))
-                throw new Exception("Geçersiz logger tipi");
-
-            _logger = (ILogger)Activator.CreateInstance(loggerType)!;
+            _loggerService = new FileLogger(); // ServiceTool kullanmıyorsan doğrudan çözüm
         }
 
         protected override void OnBefore(IInvocation invocation)
         {
-            Console.WriteLine("🔥 LogAspect devrede"); // TEST
-            _logger.Log($"{invocation.Method.Name} çağrıldı.");
-            /*var message = $"{invocation.Method.DeclaringType?.FullName}.{invocation.Method.Name} çağrıldı.";
-            _logger.Log(message);*/
+            var methodName = $"{invocation.Method.DeclaringType.FullName}.{invocation.Method.Name}";
+            var arguments = string.Join(", ", invocation.Arguments.Select(a => a?.ToString() ?? "null"));
+            _loggerService.LogInfo($"[BEFORE] {methodName} args: {arguments}");
         }
 
         protected override void OnException(IInvocation invocation, Exception e)
         {
-            var message = $"HATA: {invocation.Method.Name} -- {e.Message}";
-            _logger.Log(message);
+            var methodName = $"{invocation.Method.DeclaringType.FullName}.{invocation.Method.Name}";
+            _loggerService.LogError($"[EXCEPTION] {methodName} - {e.Message}");
+        }
+
+        protected override void OnSuccess(IInvocation invocation)
+        {
+            var methodName = $"{invocation.Method.DeclaringType.FullName}.{invocation.Method.Name}";
+            _loggerService.LogInfo($"[SUCCESS] {methodName}");
         }
     }
-
 }

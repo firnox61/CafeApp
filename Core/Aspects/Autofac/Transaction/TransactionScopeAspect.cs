@@ -11,22 +11,22 @@ namespace Core.Aspects.Autofac.Transaction
 {
     public class TransactionScopeAspect : MethodInterception
     {
-        public override void Intercept(IInvocation invocation)
+        public override async Task InterceptAsync(IInvocation invocation)
         {
             using (var transactionScope = new TransactionScope(
-                TransactionScopeAsyncFlowOption.Enabled)) // 🔥 async destekli
+                TransactionScopeAsyncFlowOption.Enabled)) // 🔥 async desteği açık
             {
                 try
                 {
-                    invocation.Proceed(); // metodu çalıştır
-                    transactionScope.Complete(); // başarılıysa commit et
+                    await invocation.ProceedAsync(); // ✅ metodu async şekilde çalıştır
+                    transactionScope.Complete(); // başarılıysa commit
                 }
                 catch (Exception)
                 {
                     // rollback otomatik, dispose yeterli
                     throw;
                 }
-            }
+            }//[TransactionScopeAspect] ekleencek
         }
     }
 }

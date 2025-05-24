@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,12 @@ using System.Threading.Tasks;
 
 namespace Entities.DTOs.Ingredients
 {
-    public class IngredientDto
+    public class IngredientDto:IDto
     {
-        public int IngredientId { get; set; }
-        public string IngredientName { get; set; } = null!;
-        public double QuantityRequired { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Unit { get; set; }
+        public decimal Stock { get; set; }
+        public decimal MinStockThreshold { get; set; }
     }
 }

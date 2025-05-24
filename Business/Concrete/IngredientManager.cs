@@ -1,10 +1,6 @@
 ﻿using AutoMapper;
 using Business.Abstract;
-using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Caching;
-using Core.Aspects.Autofac.Logging;
-using Core.Aspects.Autofac.Validation;
-using Core.CrossCuttingCorcerns.Logging;
 using Core.Utilities.Result;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
@@ -29,8 +25,9 @@ namespace Business.Concrete
             _mapper = mapper;
         }
         // [CacheRemoveAspect("ITableService.Get")]
-        [ValidationAspect(typeof(IngredientCreateDtoValidator))]
-        [LogAspect(typeof(FileLogger))] // opsiyonel: loglama da ekli
+        //  [ValidationAspect(typeof(IngredientCreateDtoValidator))]
+        //    [LogAspect(typeof(FileLogger))] // opsiyonel: loglama da ekli
+      //  [CacheRemoveAspect("CafeApp.Business.Concrete.IngredientManager.GetAllAsync")]
         public async Task<IResult> Add(IngredientCreateDto ingredientCreateDto)
         {
             var newIngredient= _mapper.Map<Ingredient>(ingredientCreateDto);
@@ -47,12 +44,16 @@ namespace Business.Concrete
             await _ingredientDal.DeleteAsync(ingredient);
             return new SuccessResult("Malzeme silindi.");
         }
-        [CacheAspect]
-        public async Task<IDataResult<List<Ingredient>>> GetAllAsync()
+      //  [CacheAspect(duration: 10)]
+        public async Task<IDataResult<List<IngredientDto>>> GetAllAsync()
         {
-            Console.WriteLine("deneme yazısı komuta eklendi");
-            return new SuccessDataResult<List<Ingredient>>(await _ingredientDal.GetAllAsync());
-           
+            var ingredientEntities = await _ingredientDal.GetAllAsync();
+            var dtoList = _mapper.Map<List<IngredientDto>>(ingredientEntities);
+
+            Console.WriteLine("IngredientDto listesi başarıyla maplendi");
+
+            return new SuccessDataResult<List<IngredientDto>>(dtoList);
+
         }
 
         public async Task<IDataResult<Ingredient?>> GetById(int id)
@@ -66,6 +67,12 @@ namespace Business.Concrete
             var Ingredient = _mapper.Map<Ingredient>(ingredientUpdateDto);
             await _ingredientDal.UpdateAsync(Ingredient);
             return new SuccessResult(); 
+        }
+        public async Task<IDataResult<List<StockAlertDto>>> GetCriticalStockIngredientsAsync()
+        {
+            var allIngredients = await _ingredientDal.GetAllAsync(i => i.Stock <= i.MinStockThreshold);
+            var dtoList = _mapper.Map<List<StockAlertDto>>(allIngredients);
+            return new SuccessDataResult<List<StockAlertDto>>(dtoList);
         }
     }
 }

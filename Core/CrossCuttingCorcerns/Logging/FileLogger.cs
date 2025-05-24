@@ -9,20 +9,25 @@ namespace Core.CrossCuttingCorcerns.Logging
 {
     public class FileLogger : ILogger
     {
-        private readonly string _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs", "log.txt");
+        private readonly string _logFilePath = "logs/log.txt";
 
-        public void Log(string message)
+        public FileLogger()
         {
-            try
+            var directory = Path.GetDirectoryName(_logFilePath);
+            if (!Directory.Exists(directory))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(_logFilePath)!);
-                using var writer = new StreamWriter(_logFilePath, append: true);
-                writer.WriteLine($"[{DateTime.Now}] {message}");
+                Directory.CreateDirectory(directory);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"FileLogger HATASI: {ex.Message}");
-            }
+        }
+
+        public void LogInfo(string message)
+        {
+            File.AppendAllText(_logFilePath, $"[INFO] {DateTime.Now}: {message}{Environment.NewLine}");
+        }
+
+        public void LogError(string message)
+        {
+            File.AppendAllText(_logFilePath, $"[ERROR] {DateTime.Now}: {message}{Environment.NewLine}");
         }
     }
 }

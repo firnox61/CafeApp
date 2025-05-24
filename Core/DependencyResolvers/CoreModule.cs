@@ -1,5 +1,4 @@
-﻿using Core.CrossCuttingCorcerns.Caching.Microsoft;
-using Core.CrossCuttingCorcerns.Caching;
+﻿
 using Core.Utilities.IoC;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Core.CrossCuttingCorcerns.Caching;
+using Core.CrossCuttingCorcerns.Caching.Microsoft;
 
 namespace Core.DependencyResolvers
 {
@@ -20,7 +21,7 @@ namespace Core.DependencyResolvers
 
             serviceCollection.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             serviceCollection.AddSingleton<ICacheManager, MemoryCacheManager>();//senden cahchemanager isterse momorycachemanager ver
-            serviceCollection.AddSingleton<Stopwatch>();
+            serviceCollection.AddSingleton<Stopwatch>();//performance iççin
 
         }
     }

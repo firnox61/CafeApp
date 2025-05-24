@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Core;
 using Core.Aspects.Autofac.Transaction;
 using Core.DataAccess;
+using Core.Utilities.Business;
 using Core.Utilities.Result;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
 using Entities.DTOs.Products;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -36,10 +39,10 @@ namespace Business.Concrete
             _productionHistoryDal = productionHistoryDal;
             _fileService = fileService; 
         }
-        [TransactionScopeAspect]
+        // [TransactionScopeAspect]
         public async Task<IResult> Add(ProductCreateDto productCreateDto)
         {
-            // 1. Malzeme stoklarını kontrol et
+            // 1. Malzeme stok kontrolü
             foreach (var item in productCreateDto.ProductIngredients!)
             {
                 var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
@@ -47,55 +50,63 @@ namespace Business.Concrete
                     return new ErrorResult($"Malzeme bulunamadı. ID: {item.IngredientId}");
 
                 var required = item.QuantityRequired * productCreateDto.Stock;
-
                 if (ingredient.Stock < required)
                     return new ErrorResult($"Yetersiz stok: {ingredient.Name}. Gerekli: {required}, Mevcut: {ingredient.Stock}");
             }
+
+            // 2. Görsel yükle
             var fileName = await _fileService.UploadImageAsync(productCreateDto.Image, "images/products");
-            // 2. Ürün kaydı
+
+            // 3. Ürün oluştur
             var product = new Product
             {
                 Name = productCreateDto.Name,
                 Description = productCreateDto.Description,
                 Price = productCreateDto.Price,
                 Stock = productCreateDto.Stock,
-                CreatedAt= DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
                 ImageFileName = fileName,
             };
 
             await _productDal.AddAsync(product);
-            // ✅ Üretim geçmişi kaydı oluştur
-            var productionHistory = new ProductionHistory
+
+            // 4. Üretim geçmişi kaydı
+            await _productionHistoryDal.AddAsync(new ProductionHistory
             {
                 ProductId = product.Id,
                 QuantityProduced = product.Stock,
                 ProducedAt = DateTime.UtcNow
-            };
-            await _productionHistoryDal.AddAsync(productionHistory);
+            });
 
-            // 3. Malzeme ilişkisi ve stok düşümü
+            // 5. Malzeme ilişkisi ve stok düşümü
             foreach (var item in productCreateDto.ProductIngredients!)
             {
-                var relation = new ProductIngredient
+                var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
+                if (ingredient == null)
+                    return new ErrorResult($"Stok güncellemede malzeme eksik: {item.IngredientId}");
+
+                // Malzeme ilişkisi ekle
+                await _productIngredientDal.AddAsync(new ProductIngredient
                 {
                     ProductId = product.Id,
                     IngredientId = item.IngredientId,
                     QuantityRequired = item.QuantityRequired
-                };
-                await _productIngredientDal.AddAsync(relation);
+                });
 
-                var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
-                ingredient.Stock -= item.QuantityRequired * productCreateDto.Stock;
+                // Stok güncelle
+                ingredient.Stock -= item.QuantityRequired * product.Stock;
                 await _ingredientDal.UpdateAsync(ingredient);
+
+                // Kritik stok uyarısı
                 if (ingredient.Stock <= ingredient.MinStockThreshold)
                 {
-                    // Şu anlık loglayabiliriz, ileride mail / notification sistemi ile genişletilebilir
-                    Console.WriteLine($"⚠️ DİKKAT: {ingredient.Name} stoğu kritik seviyeye düştü! Mevcut: {ingredient.Stock}, Eşik: {ingredient.MinStockThreshold}");
+                    Console.WriteLine($"⚠️ Kritik stok: {ingredient.Name} | Mevcut: {ingredient.Stock}, Eşik: {ingredient.MinStockThreshold}");
                 }
             }
 
-            return new SuccessResult("Ürün ve malzemeleri başarıyla eklendi, stoklar güncellendi.");
+            return new SuccessResult("Ürün ve malzemeleri başarıyla eklendi.");
         }
+
 
 
 
@@ -124,7 +135,7 @@ namespace Business.Concrete
             return new SuccessDataResult<Product?>();
         }
 
-        [TransactionScopeAspect]
+        // [TransactionScopeAspect]
         public async Task<IResult> Update(ProductUpdateDto productUpdateDto)
         {
             var product = await _productDal.GetAsync(p => p.Id == productUpdateDto.Id);
@@ -149,7 +160,6 @@ namespace Business.Concrete
                 var diff = productUpdateDto.Stock - product.Stock;
                 product.Stock = productUpdateDto.Stock;
 
-                // Stok değiştiyse üretim geçmişine kayıt
                 var history = new ProductionHistory
                 {
                     ProductId = product.Id,
@@ -160,8 +170,39 @@ namespace Business.Concrete
             }
 
             await _productDal.UpdateAsync(product);
-            return new SuccessResult("Ürün başarıyla güncellendi.");
+
+            // 🔥 Ingredient ilişkilerini güncelle
+            var existingRelations = await _productIngredientDal.GetAllAsync(pi => pi.ProductId == product.Id);
+            foreach (var relation in existingRelations)
+            {
+                await _productIngredientDal.DeleteAsync(relation);
+            }
+
+            foreach (var item in productUpdateDto.ProductIngredients!)
+            {
+                await _productIngredientDal.AddAsync(new ProductIngredient
+                {
+                    ProductId = product.Id,
+                    IngredientId = item.IngredientId,
+                    QuantityRequired = item.QuantityRequired
+                });
+
+                var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
+                if (ingredient == null)
+                    return new ErrorResult($"Malzeme bulunamadı (ID: {item.IngredientId})");
+
+                ingredient.Stock -= item.QuantityRequired * product.Stock;
+                await _ingredientDal.UpdateAsync(ingredient);
+
+                if (ingredient.Stock <= ingredient.MinStockThreshold)
+                {
+                    Console.WriteLine($"⚠️ Kritik stok: {ingredient.Name} | Mevcut: {ingredient.Stock}, Eşik: {ingredient.MinStockThreshold}");
+                }
+            }
+
+            return new SuccessResult("Ürün ve malzemeleri başarıyla güncellendi.");
         }
+
         public async Task<IDataResult<List<ProductProductionReportDto>>> GetMostProducedProductsAsync()
         {
             var products = await _productDal.GetAllAsync();
@@ -194,6 +235,72 @@ namespace Business.Concrete
 
             return new SuccessDataResult<List<ProductProductionHistoryDto>>(report);
         }
+        private async Task<IResult> CheckIngredientStocksAsync(List<ProductIngredientCreateDto> ingredients, int stockAmount)
+        {
+            foreach (var item in ingredients)
+            {
+                var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
+                if (ingredient == null)
+                    return new ErrorResult($"Malzeme bulunamadı: ID {item.IngredientId}");
 
+                var required = item.QuantityRequired * stockAmount;
+                if (ingredient.Stock < required)
+                    return new ErrorResult($"Yetersiz stok: {ingredient.Name}. Gerekli: {required}, Mevcut: {ingredient.Stock}");
+            }
+            return new SuccessResult();
+        }
+        private async Task<IDataResult<string?>> UploadImageAsync(IFormFile? image)
+        {
+            var fileName = await _fileService.UploadImageAsync(image, "images/products");
+            return new SuccessDataResult<string?>(fileName);
+        }
+        private Product CreateProductEntity(ProductCreateDto dto, string? fileName)
+        {
+            return new Product
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Stock = dto.Stock,
+                CreatedAt = DateTime.UtcNow,
+                ImageFileName = fileName
+            };
+        }
+        private async Task LogProductionAsync(Product product)
+        {
+            var history = new ProductionHistory
+            {
+                ProductId = product.Id,
+                QuantityProduced = product.Stock,
+                ProducedAt = DateTime.UtcNow
+            };
+            await _productionHistoryDal.AddAsync(history);
+        }
+        private async Task<IResult> SaveIngredientRelationsAndUpdateStocksAsync(List<ProductIngredientCreateDto> ingredients, int stockAmount, int productId)
+        {
+            foreach (var item in ingredients)
+            {
+                await _productIngredientDal.AddAsync(new ProductIngredient
+                {
+                    ProductId = productId,
+                    IngredientId = item.IngredientId,
+                    QuantityRequired = item.QuantityRequired
+                });
+
+                var ingredient = await _ingredientDal.GetAsync(i => i.Id == item.IngredientId);
+                if (ingredient == null)
+                    return new ErrorResult($"Malzeme bulunamadı (stok güncelleme): ID {item.IngredientId}");
+
+                ingredient.Stock -= item.QuantityRequired * stockAmount;
+                await _ingredientDal.UpdateAsync(ingredient);
+
+                if (ingredient.Stock <= ingredient.MinStockThreshold)
+                {
+                    Console.WriteLine($"⚠️ Kritik stok: {ingredient.Name} | Mevcut: {ingredient.Stock}, Eşik: {ingredient.MinStockThreshold}");
+                }
+            }
+            return new SuccessResult();
+        }
     }
+
 }

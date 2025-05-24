@@ -18,6 +18,6 @@ namespace Entities.DTOs.Products
         public string? ImageFileName { get; set; }
 
         //public List<ProductIngredientGetDto> ProductIngredients { get; set; } = new();
-        public List<IngredientDto> Ingredients { get; set; } = new();
+        public List<ProductIngredientDto> Ingredients { get; set; } = new();
     }
 }

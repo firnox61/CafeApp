@@ -9,16 +9,17 @@ using System.Threading.Tasks;
 namespace Core.CrossCuttingCorcerns.Validation
 {
     public static class ValidationTool
-    {//refactor ederek evrensel kullanılabilir hale getircez
-        public static void Validate(IValidator validator,object entity)
+    {
+        public static async Task ValidateAsync(IValidator validator, object entity)
         {
-            var context = new ValidationContext<Object>(entity);
-            
-            var result = validator.Validate(context);
+            var context = new ValidationContext<object>(entity);
+            var result = await validator.ValidateAsync(context);
+
             if (!result.IsValid)
             {
                 throw new ValidationException(result.Errors);
             }
         }
     }
+
 }

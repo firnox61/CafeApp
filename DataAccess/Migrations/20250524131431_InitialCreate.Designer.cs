@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250523080146_InitialCreate")]
+    [Migration("20250524131431_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -50,39 +50,34 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Ingredients");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.OperationClaim", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OperationClaims");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            MinStockThreshold = 10.0,
-                            Name = "Un",
-                            Stock = 100.0,
-                            Unit = "Kg"
+                            Name = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            MinStockThreshold = 10.0,
-                            Name = "Şeker",
-                            Stock = 80.0,
-                            Unit = "Kg"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            MinStockThreshold = 5.0,
-                            Name = "Tuz",
-                            Stock = 60.0,
-                            Unit = "Kg"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            MinStockThreshold = 5.0,
-                            Name = "Yağ",
-                            Stock = 50.0,
-                            Unit = "Litre"
+                            Name = "Garson"
                         });
                 });
 
@@ -260,23 +255,68 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tables");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Masa 1"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Masa 2"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Masa 3"
-                        });
+            modelBuilder.Entity("Entities.Concrete.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.UserOperationClaim", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OperationClaimId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OperationClaimId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserOperationClaims");
                 });
 
             modelBuilder.Entity("Entities.Concrete.Order", b =>
@@ -350,9 +390,33 @@ namespace DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Entities.Concrete.UserOperationClaim", b =>
+                {
+                    b.HasOne("Entities.Concrete.OperationClaim", "OperationClaim")
+                        .WithMany("UserOperationClaims")
+                        .HasForeignKey("OperationClaimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Concrete.User", "User")
+                        .WithMany("UserOperationClaims")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OperationClaim");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Entities.Concrete.Ingredient", b =>
                 {
                     b.Navigation("ProductIngredients");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.OperationClaim", b =>
+                {
+                    b.Navigation("UserOperationClaims");
                 });
 
             modelBuilder.Entity("Entities.Concrete.Order", b =>
@@ -372,6 +436,11 @@ namespace DataAccess.Migrations
             modelBuilder.Entity("Entities.Concrete.Table", b =>
                 {
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.User", b =>
+                {
+                    b.Navigation("UserOperationClaims");
                 });
 #pragma warning restore 612, 618
         }

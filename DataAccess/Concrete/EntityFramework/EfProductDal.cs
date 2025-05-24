@@ -29,7 +29,7 @@ namespace DataAccess.Concrete.EntityFramework
                     Price = p.Price,
                     Stock = p.Stock,
                     ImageFileName = p.ImageFileName,
-                    Ingredients = p.ProductIngredients.Select(pi => new IngredientDto
+                    Ingredients = p.ProductIngredients.Select(pi => new ProductIngredientDto
                     {
                         IngredientId = pi.IngredientId,
                         IngredientName = pi.Ingredient.Name,
@@ -40,7 +40,7 @@ namespace DataAccess.Concrete.EntityFramework
 
             return result;
         }
-    
+
 
     }
 }

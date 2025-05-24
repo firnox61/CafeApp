@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Entities.Concrete;
+using Entities.DTOs;
 using Entities.DTOs.Ingredients;
 using Entities.DTOs.Orders;
 using Entities.DTOs.Payments;
 using Entities.DTOs.Products;
 using Entities.DTOs.Tables;
+using Entities.DTOs.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +55,45 @@ namespace DataAccess.Mapping
 
             CreateMap<ProductIngredient, ProductIngredientCreateDto>().ReverseMap();
             CreateMap<ProductIngredient, ProductIngredientGetDto>().ReverseMap();
+
+
+            CreateMap<Ingredient, StockAlertDto>().ReverseMap();
+
+            CreateMap<UserCreateDto, User>()
+    .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+    .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+
+            CreateMap<User, UserForLoginDto>().ReverseMap();
+            CreateMap<User, UserForRegisterDto>().ReverseMap();
+            CreateMap<User, UserListDto>().ReverseMap();
+            CreateMap<User, UserUpdateDto>().ReverseMap();
+
+
+            CreateMap<OperationClaim, OperationClaimCreateDto>().ReverseMap();
+            CreateMap<OperationClaim, OperationClaimListDto>().ReverseMap();
+            CreateMap<OperationClaim, OperationClaimUpdateDto>().ReverseMap();
+
+            
+
+            CreateMap<UserOperationClaim, UserOperationClaimCreateDto>().ReverseMap();
+            CreateMap<UserOperationClaim, UserOperationClaimListDto>().ReverseMap();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

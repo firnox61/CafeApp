@@ -26,6 +26,9 @@ namespace DataAccess.Concrete.EntityFramework
         public DbSet<Table> Tables => Set<Table>();
         public DbSet<Payment> Payments => Set<Payment>(); 
          public DbSet<ProductionHistory> ProductionHistories => Set<ProductionHistory>();
+        public DbSet<User> Users => Set<User>();
+        public DbSet<OperationClaim> OperationClaims => Set<OperationClaim>();
+        public DbSet<UserOperationClaim> UserOperationClaims => Set<UserOperationClaim>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Composite key
@@ -64,22 +67,43 @@ namespace DataAccess.Concrete.EntityFramework
                  .WithMany(p => p.ProductionHistories)
                  .HasForeignKey(ph => ph.ProductId)
                  .OnDelete(DeleteBehavior.Restrict); // ✅ ürün silinemez, çünkü geçmiş korunmalı
+
+            modelBuilder.Entity<UserOperationClaim>()
+        .HasOne(uoc => uoc.User)
+        .WithMany(u => u.UserOperationClaims) // 👈 navigation property kullanılıyor
+        .HasForeignKey(uoc => uoc.UserId);
+
+            modelBuilder.Entity<UserOperationClaim>()
+                .HasOne(uoc => uoc.OperationClaim)
+                .WithMany(oc => oc.UserOperationClaims) // 👈 navigation property kullanılıyor
+                .HasForeignKey(uoc => uoc.OperationClaimId);
+
+            // (Opsiyonel) Kullanıcı e-mail unique
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            // (Opsiyonel) Varsayılan roller
+            modelBuilder.Entity<OperationClaim>().HasData(
+                new OperationClaim { Id = 1, Name = "Admin" },
+                new OperationClaim { Id = 2, Name = "Garson" }
+            );
             // Diğer konfigürasyonlar
 
-            var now = DateTime.UtcNow;
+            /*  var now = DateTime.UtcNow;
 
-            modelBuilder.Entity<Ingredient>().HasData(
-                new Ingredient { Id = 1, Name = "Un", Unit = "Kg", Stock = 100, MinStockThreshold = 10 },
-                new Ingredient { Id = 2, Name = "Şeker", Unit = "Kg", Stock = 80, MinStockThreshold = 10 },
-                new Ingredient { Id = 3, Name = "Tuz", Unit = "Kg", Stock = 60, MinStockThreshold = 5 },
-                new Ingredient { Id = 4, Name = "Yağ", Unit = "Litre", Stock = 50, MinStockThreshold = 5 }
-            );
+              modelBuilder.Entity<Ingredient>().HasData(
+                  new Ingredient { Id = 1, Name = "Un", Unit = "Kg", Stock = 100, MinStockThreshold = 10 },
+                  new Ingredient { Id = 2, Name = "Şeker", Unit = "Kg", Stock = 80, MinStockThreshold = 10 },
+                  new Ingredient { Id = 3, Name = "Tuz", Unit = "Kg", Stock = 60, MinStockThreshold = 5 },
+                  new Ingredient { Id = 4, Name = "Yağ", Unit = "Litre", Stock = 50, MinStockThreshold = 5 }
+              );
 
-            modelBuilder.Entity<Table>().HasData(
-                new Table { Id = 1, Name = "Masa 1" },
-                new Table { Id = 2, Name = "Masa 2" },
-                new Table { Id = 3, Name = "Masa 3" }
-            );
+              modelBuilder.Entity<Table>().HasData(
+                  new Table { Id = 1, Name = "Masa 1" },
+                  new Table { Id = 2, Name = "Masa 2" },
+                  new Table { Id = 3, Name = "Masa 3" }
+              );*/
 
             /*modelBuilder.Entity<Product>().HasData(
                 new Product { Id = 1, Name = "Kurabiye", Description = "Tatlı unlu mamül", Price = 25, Stock = 30, MinStockThreshold = 5, CreatedAt = now },

@@ -1,5 +1,4 @@
 ﻿using Castle.DynamicProxy;
-
 namespace Core.Utilities.Interceptors
 {
     public abstract class MethodInterception : MethodInterceptionBaseAttribute
@@ -8,14 +7,37 @@ namespace Core.Utilities.Interceptors
         protected virtual void OnAfter(IInvocation invocation) { }
         protected virtual void OnException(IInvocation invocation, System.Exception e) { }
         protected virtual void OnSuccess(IInvocation invocation) { }
-        public override void Intercept(IInvocation invocation)
-        {// public override void Intercept(IInvocation invocation) bu kısım aslında metotlar mesela
-         // add metodu Onbeforenin içini doldurup ilk çalışanların neler yapacağını belirteceiğiz
+         public override void Intercept(IInvocation invocation)
+         {// public override void Intercept(IInvocation invocation) bu kısım aslında metotlar mesela
+          // add metodu Onbeforenin içini doldurup ilk çalışanların neler yapacağını belirteceiğiz
+             var isSuccess = true;
+             OnBefore(invocation);
+             try
+             {
+                 invocation.Proceed();
+             }
+             catch (Exception e)
+             {
+                 isSuccess = false;
+                 OnException(invocation, e);
+                 throw;
+             }
+             finally
+             {
+                 if (isSuccess)
+                 {
+                     OnSuccess(invocation);
+                 }
+             }
+             OnAfter(invocation);
+         }
+        public override async Task InterceptAsync(IInvocation invocation)
+        {
             var isSuccess = true;
             OnBefore(invocation);
             try
             {
-                invocation.Proceed();
+                await invocation.ProceedAsync(); // 🔥 async işlemi burada await et
             }
             catch (Exception e)
             {
@@ -26,11 +48,10 @@ namespace Core.Utilities.Interceptors
             finally
             {
                 if (isSuccess)
-                {
                     OnSuccess(invocation);
-                }
             }
             OnAfter(invocation);
         }
+
     }
 }

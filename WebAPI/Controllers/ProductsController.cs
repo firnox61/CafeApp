@@ -22,12 +22,17 @@ namespace WebAPI.Controllers
         [Consumes("multipart/form-data")] // 🔥 Swagger ve ASP.NET'e sinyal ver
         public async Task<IActionResult> Add([FromForm] ProductCreateDto productCreateDto)
         {
-            var result= await _productService.Add(productCreateDto);
-            if (result.Success)
+            try
             {
+                var result = await _productService.Add(productCreateDto);
                 return Ok(result);
             }
-            return BadRequest(result);
+            catch (Exception ex)
+            {
+                Console.WriteLine("🔥 EXCEPTION: " + ex.Message);
+                Console.WriteLine("🔥 STACKTRACE: " + ex.StackTrace);
+                return StatusCode(500, $"Beklenmeyen hata: {ex.Message}");
+            }
         }
 
 
@@ -94,6 +99,7 @@ namespace WebAPI.Controllers
         }
 
 
+        
 
 
 

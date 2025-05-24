@@ -55,7 +55,7 @@ namespace WebAPI.Controllers
             var result = await _ingredientService.GetAllAsync();
             if (result.Success)
             {
-                return Ok(result);
+                return Ok(result.Data);
             }
             return BadRequest(result);
         }
@@ -68,6 +68,14 @@ namespace WebAPI.Controllers
             {
                 return Ok(result);
             }
+            return BadRequest(result);
+        }
+        [HttpGet("critical-stocks")]
+        public async Task<IActionResult> GetCriticalStockIngredients()
+        {
+            var result = await _ingredientService.GetCriticalStockIngredientsAsync();
+            if (result.Success)
+                return Ok(result);
             return BadRequest(result);
         }
     }

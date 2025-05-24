@@ -11,10 +11,11 @@ namespace Business.Abstract
 {
     public interface IIngredientService
     {
-        Task<IDataResult<List<Ingredient>>> GetAllAsync();
+        Task<IDataResult<List<IngredientDto>>> GetAllAsync();
         Task<IDataResult<Ingredient?>> GetById(int id);
         Task<IResult> Add(IngredientCreateDto ingredientCreateDto);
         Task<IResult> Update(IngredientUpdateDto ingredientUpdateDto);
         Task<IResult> Delete(int ingredientId);
+        Task<IDataResult<List<StockAlertDto>>> GetCriticalStockIngredientsAsync();
     }
 }
